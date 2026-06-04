@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nordsentry — Prosjekt Luftvakt | Bakkebasert dronedeteksjon</title>
+<meta name="description" content="Nordsentry Luftvakt er et AI-drevet bakkesystem som oppdager droner over arrangementer og områder i sanntid. Rask å rigge. Ingen lufttillatelse nødvendig.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e15; --bg2:#0c111b; --surface:#111927; --surface2:#15202f;
+  --line:rgba(125,155,185,.13); --line2:rgba(125,155,185,.24);
+  --text:#e8eef6; --muted:#93a1b6; --muted2:#62718a;
+  --signal:#3ce6a4; --signal-dim:rgba(60,230,164,.13);
+  --alert:#ff9a3c; --blue:#56a8ff;
+  --font-d:'Saira',sans-serif; --font-b:'IBM Plex Sans',sans-serif; --font-m:'IBM Plex Mono',monospace;
+  --maxw:1180px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-b); background:var(--bg); color:var(--text);
+  line-height:1.6; overflow-x:hidden; position:relative; -webkit-font-smoothing:antialiased;
+}
+/* atmosphere layers */
+body::before{
+  content:""; position:fixed; inset:0; z-index:-2; pointer-events:none;
+  background:
+    radial-gradient(900px 600px at 78% -8%, rgba(60,230,164,.10), transparent 60%),
+    radial-gradient(800px 700px at 8% 30%, rgba(86,168,255,.07), transparent 60%),
+    linear-gradient(180deg,#0a0e15 0%, #0a0e15 100%);
+}
+body::after{
+  content:""; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.5;
+  background-image:
+    linear-gradient(to right, var(--line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+  background-size:64px 64px;
+  mask-image:radial-gradient(circle at 70% 10%, #000 0%, transparent 75%);
+  -webkit-mask-image:radial-gradient(circle at 70% 10%, #000 0%, transparent 75%);
+}
+.grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 28px}
+a{color:inherit;text-decoration:none}
+
+/* mono tag */
+.tag{font-family:var(--font-m); font-size:11.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--signal); display:inline-flex; align-items:center; gap:9px}
+.tag::before{content:""; width:7px; height:7px; background:var(--signal); box-shadow:0 0 10px var(--signal); border-radius:1px; flex:none}
+.tag.amber{color:var(--alert)} .tag.amber::before{background:var(--alert); box-shadow:0 0 10px var(--alert)}
+.mono{font-family:var(--font-m)}
+
+/* buttons */
+.btn{font-family:var(--font-m); font-size:13px; letter-spacing:.06em; padding:13px 22px; border-radius:3px; display:inline-flex; align-items:center; gap:10px; cursor:pointer; border:1px solid transparent; transition:.22s; text-transform:uppercase}
+.btn-primary{background:var(--signal); color:#06241a; font-weight:600; box-shadow:0 0 0 rgba(60,230,164,.4)}
+.btn-primary:hover{box-shadow:0 8px 30px rgba(60,230,164,.35); transform:translateY(-2px)}
+.btn-ghost{border-color:var(--line2); color:var(--text); background:rgba(255,255,255,.015)}
+.btn-ghost:hover{border-color:var(--signal); color:var(--signal)}
+
+/* nav */
+header{position:sticky; top:0; z-index:50; backdrop-filter:blur(14px); background:rgba(10,14,21,.72); border-bottom:1px solid var(--line)}
+nav{display:flex; align-items:center; justify-content:space-between; height:68px}
+.brand{display:flex; align-items:center; gap:12px; font-family:var(--font-d); font-weight:700; font-size:18px; letter-spacing:.16em}
+.brand svg{flex:none}
+.brand b{color:var(--signal); font-weight:700}
+.navlinks{display:flex; gap:30px; align-items:center}
+.navlinks a{font-family:var(--font-m); font-size:12.5px; letter-spacing:.04em; color:var(--muted); transition:.2s; position:relative}
+.navlinks a:hover{color:var(--text)}
+.navlinks a::after{content:""; position:absolute; left:0; bottom:-6px; height:1px; width:0; background:var(--signal); transition:.25s}
+.navlinks a:hover::after{width:100%}
+.nav-cta{display:flex;align-items:center;gap:18px}
+.menu-btn{display:none}
+
+/* hero */
+.hero{padding:clamp(54px,8vw,104px) 0 80px; position:relative}
+.hero-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:48px; align-items:center}
+.hero h1{font-family:var(--font-d); font-weight:800; font-size:clamp(38px,5.6vw,68px); line-height:1.02; letter-spacing:-.01em; margin:22px 0 0}
+.hero h1 .hl{color:var(--signal)}
+.hero p.lead{color:var(--muted); font-size:clamp(15.5px,1.5vw,18px); max-width:520px; margin:22px 0 0}
+.hero-cta{display:flex; gap:14px; margin-top:34px; flex-wrap:wrap}
+.hud-stats{display:flex; gap:0; margin-top:46px; border-top:1px solid var(--line); border-bottom:1px solid var(--line)}
+.hud-stats div{padding:16px 22px 16px 0; margin-right:22px; border-right:1px solid var(--line)}
+.hud-stats div:last-child{border-right:none}
+.hud-stats .k{font-family:var(--font-d); font-weight:700; font-size:21px; color:var(--text)}
+.hud-stats .l{font-family:var(--font-m); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted2); margin-top:3px}
+
+/* radar scope */
+.scope-wrap{display:flex; justify-content:center; align-items:center; position:relative}
+.scope{position:relative; width:min(440px,86vw); aspect-ratio:1/1}
+.scope .sweep{position:absolute; inset:6%; border-radius:50%;
+  background:conic-gradient(from 0deg, rgba(60,230,164,.001) 0deg, rgba(60,230,164,.0) 200deg, rgba(60,230,164,.10) 320deg, rgba(60,230,164,.42) 358deg, rgba(60,230,164,.001) 360deg);
+  animation:sweep 4.6s linear infinite; mask:radial-gradient(circle, #000 62%, transparent 63%); -webkit-mask:radial-gradient(circle, #000 62%, transparent 63%)}
+@keyframes sweep{to{transform:rotate(360deg)}}
+.scope svg{position:absolute; inset:0; width:100%; height:100%}
+.scope .corner{position:absolute; font-family:var(--font-m); font-size:10px; letter-spacing:.14em; color:var(--muted2); text-transform:uppercase}
+.scope .corner.tl{top:-4px;left:-4px} .scope .corner.tr{top:-4px;right:-4px;text-align:right}
+.scope .corner.bl{bottom:-4px;left:-4px} .scope .corner.br{bottom:-4px;right:-4px;text-align:right}
+.scope .corner b{color:var(--signal)} .scope .corner .a{color:var(--alert)}
+.blip{animation:blip 2.2s ease-in-out infinite}
+@keyframes blip{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* sections */
+section{padding:clamp(64px,8vw,108px) 0; position:relative}
+.sec-head{max-width:680px}
+.sec-head h2{font-family:var(--font-d); font-weight:700; font-size:clamp(28px,3.6vw,44px); line-height:1.06; letter-spacing:-.01em; margin:16px 0 0}
+.sec-head p{color:var(--muted); margin-top:16px; font-size:16px}
+
+/* intro band */
+.band{border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:linear-gradient(180deg, rgba(21,32,47,.4), transparent)}
+.band .wrap{display:grid; grid-template-columns:1fr 1fr; gap:40px; padding-top:54px; padding-bottom:54px}
+.band p{font-size:clamp(18px,2.1vw,23px); font-family:var(--font-d); font-weight:500; line-height:1.4; letter-spacing:-.005em}
+.band .small{font-family:var(--font-b); font-weight:400; font-size:15.5px; color:var(--muted); line-height:1.7}
+
+/* steps */
+.steps{display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-top:52px}
+.step{position:relative; padding:26px 22px 30px; background:var(--surface); border:1px solid var(--line); border-radius:5px; overflow:hidden; transition:.25s}
+.step:hover{border-color:var(--line2); background:var(--surface2); transform:translateY(-4px)}
+.step::before{content:""; position:absolute; top:14px; left:14px; width:14px; height:14px; border-top:1.5px solid var(--signal); border-left:1.5px solid var(--signal); opacity:.6}
+.step::after{content:""; position:absolute; bottom:14px; right:14px; width:14px; height:14px; border-bottom:1.5px solid var(--signal); border-right:1.5px solid var(--signal); opacity:.25}
+.step .num{font-family:var(--font-m); font-size:12px; color:var(--signal); letter-spacing:.1em}
+.step h3{font-family:var(--font-d); font-weight:700; font-size:21px; margin:30px 0 9px; letter-spacing:.01em}
+.step p{font-size:14px; color:var(--muted); line-height:1.65}
+
+/* use cases */
+.cases{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:48px}
+.case{position:relative; padding:34px 32px; border-radius:6px; border:1px solid var(--line); background:
+  linear-gradient(180deg, rgba(21,32,47,.55), rgba(17,25,39,.3)); overflow:hidden; transition:.25s}
+.case:hover{border-color:var(--signal); transform:translateY(-4px)}
+.case:hover .ico{color:var(--signal); border-color:var(--signal)}
+.case .ico{width:46px; height:46px; border:1px solid var(--line2); border-radius:5px; display:flex; align-items:center; justify-content:center; color:var(--muted); transition:.25s}
+.case h3{font-family:var(--font-d); font-weight:700; font-size:24px; margin:20px 0 10px}
+.case p{color:var(--muted); font-size:15px}
+.case .ribbon{position:absolute; top:0; right:0; font-family:var(--font-m); font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--alert); padding:8px 14px; border-left:1px solid var(--line); border-bottom:1px solid var(--line); border-bottom-left-radius:6px}
+.subcases{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:18px}
+.subcase{padding:22px 24px; border:1px dashed var(--line2); border-radius:6px; display:flex; align-items:center; gap:16px}
+.subcase .ico{width:38px;height:38px;flex:none}
+.subcase h4{font-family:var(--font-d); font-weight:600; font-size:17px}
+.subcase p{color:var(--muted2); font-size:13px; font-family:var(--font-m); letter-spacing:.02em}
+
+/* features */
+.feat{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; margin-top:48px; background:var(--line); border:1px solid var(--line); border-radius:6px; overflow:hidden}
+.feat .f{background:var(--bg); padding:30px 28px; transition:.25s}
+.feat .f:hover{background:var(--surface2)}
+.feat .f .fn{font-family:var(--font-m); font-size:11px; color:var(--muted2); letter-spacing:.14em}
+.feat .f h3{font-family:var(--font-d); font-weight:600; font-size:19px; margin:14px 0 8px; display:flex; align-items:center; gap:10px}
+.feat .f h3 .dot{width:6px;height:6px;border-radius:50%;background:var(--signal);box-shadow:0 0 8px var(--signal)}
+.feat .f p{color:var(--muted); font-size:14px; line-height:1.6}
+
+/* spec strip */
+.spec{border-top:1px solid var(--line); border-bottom:1px solid var(--line); background:rgba(21,32,47,.32)}
+.spec .wrap{display:grid; grid-template-columns:repeat(4,1fr); gap:24px; padding:48px 28px}
+.spec .s{text-align:left}
+.spec .s .v{font-family:var(--font-d); font-weight:800; font-size:clamp(30px,4vw,46px); color:var(--text); line-height:1}
+.spec .s .v span{color:var(--signal)}
+.spec .s .lbl{font-family:var(--font-m); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted2); margin-top:10px}
+
+/* contact */
+.contact-grid{display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:start; margin-top:46px}
+.contact-info .tag{margin-bottom:18px}
+.contact-info h2{font-family:var(--font-d); font-weight:700; font-size:clamp(30px,4vw,46px); line-height:1.05; letter-spacing:-.01em}
+.contact-info p{color:var(--muted); margin-top:18px; max-width:420px}
+.contact-meta{margin-top:30px; display:flex; flex-direction:column; gap:12px}
+.contact-meta a, .contact-meta span{font-family:var(--font-m); font-size:14px; color:var(--muted); display:flex; gap:12px; align-items:center}
+.contact-meta b{color:var(--signal); font-weight:500}
+form{background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:30px}
+.field{margin-bottom:18px}
+.field label{font-family:var(--font-m); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted2); display:block; margin-bottom:8px}
+.field input, .field textarea{width:100%; background:var(--bg); border:1px solid var(--line2); border-radius:4px; padding:13px 14px; color:var(--text); font-family:var(--font-b); font-size:15px; transition:.2s; resize:vertical}
+.field input:focus, .field textarea:focus{outline:none; border-color:var(--signal); box-shadow:0 0 0 3px var(--signal-dim)}
+form .btn-primary{width:100%; justify-content:center; margin-top:6px}
+
+/* footer */
+footer{border-top:1px solid var(--line); padding:54px 0 40px; margin-top:20px}
+.foot-top{display:flex; justify-content:space-between; gap:30px; flex-wrap:wrap; align-items:flex-start}
+.foot-brand{max-width:300px}
+.foot-brand .brand{margin-bottom:14px}
+.foot-brand p{color:var(--muted2); font-size:14px}
+.foot-cols{display:flex; gap:64px; flex-wrap:wrap}
+.foot-col h5{font-family:var(--font-m); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted2); margin-bottom:14px}
+.foot-col a{display:block; color:var(--muted); font-size:14px; margin-bottom:9px; transition:.2s}
+.foot-col a:hover{color:var(--signal)}
+.foot-bottom{display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-top:46px; padding-top:24px; border-top:1px solid var(--line); font-family:var(--font-m); font-size:11.5px; letter-spacing:.06em; color:var(--muted2)}
+
+/* reveal */
+.reveal{opacity:0; transform:translateY(20px); transition:opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1; transform:none}
+.stagger > *{opacity:0; transform:translateY(20px); transition:opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1)}
+.stagger.in > *{opacity:1; transform:none}
+.stagger.in > *:nth-child(2){transition-delay:.08s}
+.stagger.in > *:nth-child(3){transition-delay:.16s}
+.stagger.in > *:nth-child(4){transition-delay:.24s}
+.stagger.in > *:nth-child(5){transition-delay:.32s}
+.stagger.in > *:nth-child(6){transition-delay:.40s}
+
+@media (max-width:880px){
+  .navlinks{display:none}
+  .hero-grid{grid-template-columns:1fr; gap:40px}
+  .scope-wrap{order:-1}
+  .band .wrap{grid-template-columns:1fr; gap:18px}
+  .steps{grid-template-columns:1fr 1fr}
+  .cases{grid-template-columns:1fr}
+  .feat{grid-template-columns:1fr 1fr}
+  .spec .wrap{grid-template-columns:1fr 1fr; gap:34px}
+  .contact-grid{grid-template-columns:1fr; gap:30px}
+}
+@media (max-width:540px){
+  .wrap{padding:0 18px}
+  .steps,.feat,.subcases{grid-template-columns:1fr}
+  .hud-stats{flex-wrap:wrap}
+  .hud-stats div{border-right:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .reveal,.stagger>*{opacity:1!important;transform:none!important;transition:none}
+  .sweep,.blip{animation:none}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header>
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="#top" aria-label="Nordsentry">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+          <rect x="1" y="1" width="24" height="24" rx="3" stroke="#3ce6a4" stroke-opacity=".4"/>
+          <path d="M5 5h4M21 5v4M21 21h-4M5 21v-4" stroke="#3ce6a4" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="13" cy="13" r="3" stroke="#3ce6a4" stroke-width="1.6"/>
+          <circle cx="13" cy="13" r="1" fill="#3ce6a4"/>
+        </svg>
+        NORD<b>SENTRY</b>
+      </a>
+      <div class="navlinks">
+        <a href="#luftvakt">Luftvakt</a>
+        <a href="#slik">Slik fungerer det</a>
+        <a href="#bruk">Bruksområder</a>
+        <a href="#kontakt">Kontakt</a>
+      </div>
+      <div class="nav-cta">
+        <a class="btn btn-primary" href="#kontakt">Be om demo</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <!-- HERO -->
+  <section class="hero" id="luftvakt">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <span class="tag reveal">Prosjekt Luftvakt — bakkebasert dronedeteksjon</span>
+          <h1 class="reveal">Vi oppdager dronen <span class="hl">før</span> den når folkemengden.</h1>
+          <p class="lead reveal">Nordsentry Luftvakt er et AI-drevet kamerasystem som holder luftrommet over arrangementer og områder under oppsikt — og varsler i sanntid når en drone nærmer seg. Rask å rigge opp. Ingen lufttillatelse nødvendig.</p>
+          <div class="hero-cta reveal">
+            <a class="btn btn-primary" href="#kontakt">Be om demo</a>
+            <a class="btn btn-ghost" href="#slik">Slik fungerer det →</a>
+          </div>
+          <div class="hud-stats reveal">
+            <div><div class="k">~1,2 km</div><div class="l">Rekkevidde</div></div>
+            <div><div class="k">Sanntid</div><div class="l">Varsling</div></div>
+            <div><div class="k">&lt; 1 dag</div><div class="l">Oppsett</div></div>
+          </div>
+        </div>
+
+        <div class="scope-wrap reveal">
+          <div class="scope">
+            <div class="sweep"></div>
+            <svg viewBox="0 0 400 400" aria-hidden="true">
+              <defs>
+                <radialGradient id="g" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#3ce6a4" stop-opacity=".06"/>
+                  <stop offset="100%" stop-color="#3ce6a4" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+              <circle cx="200" cy="200" r="190" fill="url(#g)"/>
+              <circle cx="200" cy="200" r="190" fill="none" stroke="rgba(125,155,185,.22)"/>
+              <circle cx="200" cy="200" r="134" fill="none" stroke="rgba(125,155,185,.13)"/>
+              <circle cx="200" cy="200" r="78" fill="none" stroke="rgba(125,155,185,.13)"/>
+              <line x1="200" y1="10" x2="200" y2="390" stroke="rgba(125,155,185,.10)"/>
+              <line x1="10" y1="200" x2="390" y2="200" stroke="rgba(125,155,185,.10)"/>
+              <!-- tick marks -->
+              <g stroke="rgba(125,155,185,.3)">
+                <line x1="200" y1="10" x2="200" y2="22"/><line x1="200" y1="378" x2="200" y2="390"/>
+                <line x1="10" y1="200" x2="22" y2="200"/><line x1="378" y1="200" x2="390" y2="200"/>
+              </g>
+              <!-- faint contacts -->
+              <circle cx="140" cy="250" r="3" fill="rgba(125,155,185,.5)"/>
+              <circle cx="250" cy="270" r="2.5" fill="rgba(125,155,185,.4)"/>
+              <!-- azimuth line to target -->
+              <line x1="200" y1="200" x2="286" y2="132" stroke="rgba(255,154,60,.4)" stroke-dasharray="3 4"/>
+              <!-- detected target reticle -->
+              <g class="blip">
+                <path d="M270 116h-16M270 116v16M302 116h16M302 116v16M270 148h-16M270 148v-16M302 148h16M302 148v-16"
+                      stroke="#ff9a3c" stroke-width="1.6" fill="none"/>
+                <circle cx="286" cy="132" r="3.4" fill="#ff9a3c"/>
+              </g>
+              <text x="318" y="124" font-family="'IBM Plex Mono',monospace" font-size="11" fill="#ff9a3c" letter-spacing="1">DRONE</text>
+              <text x="318" y="139" font-family="'IBM Plex Mono',monospace" font-size="9.5" fill="rgba(255,154,60,.7)" letter-spacing="1">AZ 041° · 980M</text>
+            </svg>
+            <div class="corner tl"><b>● SYSTEM</b> AKTIV</div>
+            <div class="corner tr">SEKTOR<br>NORD-VEST</div>
+            <div class="corner bl">SØK<br><b>SANNTID</b></div>
+            <div class="corner br"><span class="a">1 MÅL</span><br>SPORES</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTRO BAND -->
+  <div class="band reveal">
+    <div class="wrap">
+      <p>Bygget for to virkeligheter: <span style="color:var(--signal)">folkemengder</span> som ikke skal ha droner over hodet, og <span style="color:var(--signal)">områder</span> som ikke skal ha uvedkommende.</p>
+      <p class="small">Ulovlige droner over publikum er blitt en reell bekymring for arrangører. På byggeplasser er tyveri og uvedkommende et daglig problem. Luftvakt løser begge fra bakken — uten en eneste drone i lufta, og uten den regulatoriske byrden det ville krevd.</p>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section id="slik">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="tag">Slik fungerer det</span>
+        <h2>Fire ledd — fra et bredt blikk til et presist varsel.</h2>
+        <p>Et lagdelt system der billige kameraer dekker bredt og finner målet, mens et zoomkamera låser og følger det på lang avstand. Alt drevet av én PC med vår egen AI-modell.</p>
+      </div>
+      <div class="steps stagger">
+        <div class="step">
+          <div class="num">01</div>
+          <h3>Søk</h3>
+          <p>Vidvinkelkameraer dekker en bred front og holder hele området under konstant oppsikt.</p>
+        </div>
+        <div class="step">
+          <div class="num">02</div>
+          <h3>Oppdag</h3>
+          <p>AI-en kjenner igjen droner i sanntid og skiller dem fra fugler, skyer og bakgrunn.</p>
+        </div>
+        <div class="step">
+          <div class="num">03</div>
+          <h3>Lås</h3>
+          <p>Et motorisert zoomkamera svinger mot målet og følger det på opptil rundt en kilometer.</p>
+        </div>
+        <div class="step">
+          <div class="num">04</div>
+          <h3>Varsle</h3>
+          <p>Du får et øyeblikkelig varsel med retning, avstand og levende bilde av målet.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- USE CASES -->
+  <section id="bruk">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="tag amber">Bruksområder</span>
+        <h2>Der himmelen og bakken må holdes under oppsikt.</h2>
+      </div>
+      <div class="cases stagger">
+        <div class="case">
+          <div class="ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 21V8l9-5 9 5v13M3 21h18M9 21v-6h6v6M7 11h.01M17 11h.01"/></svg>
+          </div>
+          <h3>Festivaler &amp; arrangementer</h3>
+          <p>Vokt luftrommet over publikum. Vi rigger opp før dørene åpner, drifter systemet gjennom hele arrangementet, og leverer rapport etterpå. Prises per dag.</p>
+        </div>
+        <div class="case">
+          <div class="ribbon">Bonus: perimeter</div>
+          <div class="ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 9l9-6 9 6v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path d="M9 21v-8h6v8"/></svg>
+          </div>
+          <h3>Byggeplasser</h3>
+          <p>Dronedeteksjon og perimetersikring i ett. Samme AI fanger også mennesker som klatrer over gjerder og kjøretøy som dukker opp utenom arbeidstid.</p>
+        </div>
+      </div>
+      <div class="subcases stagger">
+        <div class="subcase">
+          <div class="ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.6"><path d="M2 18h20M4 18l2-7 6-3 6 3 2 7M9 11V7"/></svg>
+          </div>
+          <div><h4>Marinaer &amp; havner</h4><p>Oppsikt over båter og kaiområder</p></div>
+        </div>
+        <div class="subcase">
+          <div class="ico">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.6"><path d="M3 20h18M5 20V9l7-5 7 5v11M10 20v-5h4v5"/></svg>
+          </div>
+          <div><h4>Landbruk &amp; eiendom</h4><p>Store arealer, dyr og ferdsel</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="tag">Hvorfor Nordsentry</span>
+        <h2>Avansert deteksjon — uten kompleksiteten.</h2>
+      </div>
+      <div class="feat stagger">
+        <div class="f"><div class="fn">// 01</div><h3><span class="dot"></span>Rask utrulling</h3><p>Stativ, kamera, kjør. Systemet er oppe og operativt samme dag.</p></div>
+        <div class="f"><div class="fn">// 02</div><h3><span class="dot"></span>Ingen lufttillatelse</h3><p>Bare kameraer og programvare. Ingen drone i lufta betyr ingen luftfartstillatelse.</p></div>
+        <div class="f"><div class="fn">// 03</div><h3><span class="dot"></span>AI i sanntid</h3><p>Egen-trent modell som kjenner igjen droner i lufta — og lærer av hvert oppdrag.</p></div>
+        <div class="f"><div class="fn">// 04</div><h3><span class="dot"></span>Lang rekkevidde</h3><p>Lagdelt optikk som ser opp mot en kilometer, fra bredt søk til presis lås.</p></div>
+        <div class="f"><div class="fn">// 05</div><h3><span class="dot"></span>Norske forhold</h3><p>Værbestandig utstyr bygget for kulde, regn og snø — året rundt.</p></div>
+        <div class="f"><div class="fn">// 06</div><h3><span class="dot"></span>Levert som tjeneste</h3><p>Vi setter opp, drifter og rapporterer. Du slipper å forholde deg til teknologien.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPEC STRIP -->
+  <div class="spec reveal">
+    <div class="wrap">
+      <div class="s"><div class="v">4<span>K</span></div><div class="lbl">Oppløsning</div></div>
+      <div class="s"><div class="v">~1,2<span>km</span></div><div class="lbl">Deteksjonsrekkevidde</div></div>
+      <div class="s"><div class="v">&lt;1<span>d</span></div><div class="lbl">Fra ankomst til drift</div></div>
+      <div class="s"><div class="v">24/<span>7</span></div><div class="lbl">Kontinuerlig oppsikt</div></div>
+    </div>
+  </div>
+
+  <!-- CONTACT -->
+  <section id="kontakt">
+    <div class="wrap">
+      <div class="contact-grid">
+        <div class="contact-info reveal">
+          <span class="tag">Kontakt</span>
+          <h2>Klar for en demo?</h2>
+          <p>Vi setter opp Luftvakt på ditt neste arrangement eller din byggeplass — og viser deg at det funker, i praksis, før du forplikter deg til noe.</p>
+          <div class="contact-meta">
+            <a href="mailto:kontakt@nordsentry.no"><b>✉</b> kontakt@nordsentry.no</a>
+            <span><b>⌖</b> Oslo, Norge</span>
+            <span><b>◷</b> Svar innen 1–2 virkedager</span>
+          </div>
+        </div>
+        <form class="reveal" id="demoform">
+          <div class="field">
+            <label for="navn">Navn</label>
+            <input type="text" id="navn" name="navn" placeholder="Ditt navn" required>
+          </div>
+          <div class="field">
+            <label for="org">Organisasjon / arrangement</label>
+            <input type="text" id="org" name="org" placeholder="Festival, byggefirma, e.l." required>
+          </div>
+          <div class="field">
+            <label for="epost">E-post</label>
+            <input type="email" id="epost" name="epost" placeholder="deg@firma.no" required>
+          </div>
+          <div class="field">
+            <label for="melding">Hva trenger du dekning for?</label>
+            <textarea id="melding" name="melding" rows="3" placeholder="Kort om sted, dato og omfang"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Send forespørsel</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <a class="brand" href="#top">
+          <svg width="24" height="24" viewBox="0 0 26 26" fill="none">
+            <rect x="1" y="1" width="24" height="24" rx="3" stroke="#3ce6a4" stroke-opacity=".4"/>
+            <path d="M5 5h4M21 5v4M21 21h-4M5 21v-4" stroke="#3ce6a4" stroke-width="1.6" stroke-linecap="round"/>
+            <circle cx="13" cy="13" r="3" stroke="#3ce6a4" stroke-width="1.6"/><circle cx="13" cy="13" r="1" fill="#3ce6a4"/>
+          </svg>
+          NORD<b style="color:var(--signal)">SENTRY</b>
+        </a>
+        <p>Vi vokter det som flyr. Bakkebasert dronedeteksjon, bygget i Norge.</p>
+      </div>
+      <div class="foot-cols">
+        <div class="foot-col">
+          <h5>Produkt</h5>
+          <a href="#luftvakt">Prosjekt Luftvakt</a>
+          <a href="#slik">Slik fungerer det</a>
+          <a href="#bruk">Bruksområder</a>
+        </div>
+        <div class="foot-col">
+          <h5>Selskap</h5>
+          <a href="#kontakt">Kontakt</a>
+          <a href="#kontakt">Be om demo</a>
+        </div>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 NORDSENTRY</span>
+      <span>OSLO · NORGE — STATUS: I UTVIKLING</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// scroll reveal
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+},{threshold:.14, rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal, .stagger').forEach(el=>io.observe(el));
+// fire hero reveals immediately
+requestAnimationFrame(()=>{ document.querySelectorAll('.hero .reveal').forEach((el,i)=>{ setTimeout(()=>el.classList.add('in'), 60+i*90); }); });
+
+// live clock in scope HUD
+const clockEl = document.querySelector('.corner.tl b');
+function tick(){
+  const d=new Date();
+  const t=[d.getHours(),d.getMinutes(),d.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');
+  if(clockEl) clockEl.textContent='● '+t;
+}
+setInterval(tick,1000); tick();
+
+// demo form -> mailto
+document.getElementById('demoform').addEventListener('submit', function(ev){
+  ev.preventDefault();
+  const navn=encodeURIComponent(this.navn.value||'');
+  const org=encodeURIComponent(this.org.value||'');
+  const epost=encodeURIComponent(this.epost.value||'');
+  const melding=encodeURIComponent(this.melding.value||'');
+  const body=`Navn: ${decodeURIComponent(navn)}%0AOrganisasjon: ${decodeURIComponent(org)}%0AE-post: ${decodeURIComponent(epost)}%0A%0A${decodeURIComponent(melding)}`;
+  window.location.href=`mailto:kontakt@nordsentry.no?subject=${encodeURIComponent('Demo-forespørsel — Luftvakt')}&body=${body}`;
+});
+</script>
+</body>
+</html>
