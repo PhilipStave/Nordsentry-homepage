@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<!-- saved from url=(0045)file:///C:/Users/phili/Downloads/index_5.html -->
+<html lang="no"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nordsentry — Prosjekt Luftvakt | Dronedeteksjon, gjort enkelt</title>
+<meta name="description" content="Nordsentry oppdager droner over folkemengder og områder — i god tid. Et bakkebasert system som er raskt å rigge, og enkelt å forholde seg til.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns=&#39;http://www.w3.org/2000/svg&#39;%20viewBox=&#39;0%200%2064%2064&#39;%3E%3Cg%20fill=&#39;none&#39;%20stroke=&#39;%230f7a55&#39;%20stroke-width=&#39;3&#39;%20stroke-linecap=&#39;round&#39;%3E%3Cpath%20d=&#39;M9%2022V9h13&#39;/%3E%3Cpath%20d=&#39;M42%209h13v13&#39;/%3E%3Cpath%20d=&#39;M55%2042v13h-13&#39;/%3E%3Cpath%20d=&#39;M22%2055H9v-13&#39;/%3E%3Ccircle%20cx=&#39;32&#39;%20cy=&#39;32&#39;%20r=&#39;12&#39;/%3E%3C/g%3E%3Ccircle%20cx=&#39;32&#39;%20cy=&#39;32&#39;%20r=&#39;3&#39;%20fill=&#39;%230f7a55&#39;/%3E%3Ccircle%20cx=&#39;45&#39;%20cy=&#39;18&#39;%20r=&#39;3&#39;%20fill=&#39;%23da6a33&#39;/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<!-- Anduril bruker Helvetica Now Display (Monotype, kommersiell). Helvetica-stack under gir samme uttrykk; legg inn Helvetica Now Display i font-stacken om lisensiert. -->
+<style>
+:root{
+  --bg:#FAFAF7; --bg2:#FFFFFF; --tint:#EBF6F0; --card:#FFFFFF;
+  --ink:#15181B; --ink2:#585E59; --ink3:#9aa09a;
+  --line:rgba(20,24,22,.10); --line2:rgba(20,24,22,.18);
+  --green:#0F7A55; --green-d:#0A5C40; --mint:#34E0A0; --mint2:#D8F4E8; --clay:#DA6A33;
+  --fd:'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif; --fb:'Helvetica Now Text','Helvetica Neue',Helvetica,Arial,sans-serif;
+  --max:1200px; --r:26px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 32px}
+.tag{background:var(--mint2);color:var(--green-d);padding:7px 15px;border-radius:999px;font-size:13px;font-weight:600;letter-spacing:.01em;display:inline-flex;align-items:center;gap:8px}
+.tag::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--mint)}
+
+.btn{font-family:var(--fb);font-size:15px;font-weight:600;padding:14px 28px;border-radius:999px;border:1.5px solid transparent;cursor:pointer;transition:.22s;display:inline-flex;align-items:center;gap:9px}
+.btn-primary{background:var(--ink);color:#fff}
+.btn-primary:hover{background:var(--green);transform:translateY(-2px)}
+.btn-ghost{border-color:var(--line2);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--ink);background:var(--ink);color:#fff}
+.btn-text{color:var(--green);font-weight:600;display:inline-flex;align-items:center;gap:7px;transition:gap .2s}
+.btn-text:hover{gap:12px}
+
+/* NAV */
+header{position:fixed;top:0;left:0;right:0;z-index:100;transition:.3s;border-bottom:1px solid transparent}
+header.scrolled{background:rgba(250,250,247,.82);backdrop-filter:blur(16px);border-bottom-color:var(--line)}
+nav{display:flex;align-items:center;justify-content:space-between;height:78px;max-width:var(--max);margin:0 auto;padding:0 32px}
+.brand{display:flex;align-items:center;gap:11px;font-family:var(--fd);font-weight:700;font-size:21px;letter-spacing:-.02em;color:var(--ink)}
+.brand span{color:var(--green)}
+.navlinks{display:flex;gap:34px}
+.navlinks a{font-size:15px;font-weight:500;color:var(--ink2);transition:.2s}
+.navlinks a:hover{color:var(--green)}
+
+/* HERO */
+.hero{padding:152px 0 70px}
+.hero-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:48px;align-items:center}
+.hero h1{font-family:var(--fd);font-weight:600;font-size:clamp(46px,6.2vw,82px);line-height:1.0;letter-spacing:-.035em;margin:22px 0 0}
+.hero h1 .g{color:var(--green)}
+.hero .lead{font-size:clamp(17px,1.6vw,20px);color:var(--ink2);max-width:470px;margin:24px 0 0;line-height:1.6}
+.hero-cta{display:flex;gap:16px;align-items:center;margin-top:34px;flex-wrap:wrap}
+.hero-trust{margin-top:32px;display:flex;gap:10px;flex-wrap:wrap}
+.chip{font-size:13.5px;font-weight:500;color:var(--ink2);background:var(--bg2);border:1px solid var(--line);padding:8px 14px;border-radius:999px;display:inline-flex;align-items:center;gap:8px}
+.chip svg{color:var(--green)}
+.hero-vis{background:linear-gradient(158deg,#E7F6EE 0%,#FBFEFC 100%);border:1px solid var(--line);border-radius:var(--r);padding:0;overflow:hidden;min-height:380px}
+.hero-vis svg{width:100%;height:auto;display:block}
+
+/* SECTIONS */
+section{position:relative}
+.band{padding:clamp(70px,8.5vw,116px) 0}
+.tintbg{background:var(--tint)}
+.whitebg{background:var(--bg2)}
+.sec-head{max-width:680px;margin-bottom:54px}
+.sec-head.center{margin:0 auto 56px;text-align:center}
+.sec-head h2{font-family:var(--fd);font-weight:600;font-size:clamp(32px,4.4vw,54px);line-height:1.04;letter-spacing:-.03em;margin:16px 0 0}
+.sec-head p{font-size:18px;color:var(--ink2);margin-top:16px}
+
+/* STEPS */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.step{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:30px 26px 32px;transition:.28s}
+.step:hover{transform:translateY(-5px);box-shadow:0 18px 44px rgba(20,40,30,.07)}
+.step .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.step .ico{width:50px;height:50px;border-radius:14px;background:var(--mint2);display:flex;align-items:center;justify-content:center;color:var(--green)}
+.step .n{font-family:var(--fd);font-weight:600;font-size:30px;color:var(--line2);letter-spacing:-.02em}
+.step h3{font-family:var(--fd);font-weight:600;font-size:21px;letter-spacing:-.02em;margin-bottom:9px}
+.step p{font-size:15px;color:var(--ink2);line-height:1.55}
+
+/* SYSTEM */
+.system .wrap{display:grid;grid-template-columns:1fr 1.1fr;gap:56px;align-items:center}
+.system-copy h2{font-family:var(--fd);font-weight:600;font-size:clamp(30px,4vw,48px);line-height:1.06;letter-spacing:-.03em;margin:16px 0 0}
+.system-copy p{font-size:17px;color:var(--ink2);margin-top:18px;line-height:1.65}
+.system-copy .pts{margin-top:26px;display:flex;flex-direction:column;gap:13px}
+.system-copy .pt{display:flex;gap:12px;align-items:center;font-size:15.5px}
+.system-copy .pt .c{width:24px;height:24px;border-radius:50%;background:var(--mint2);display:flex;align-items:center;justify-content:center;flex:none;color:var(--green)}
+.system-vis{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:22px}
+.system-vis svg{width:100%;height:auto;display:block;border-radius:14px}
+
+/* BENTO why */
+.bento{display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:18px}
+.bx{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:30px;transition:.28s}
+.bx:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(20,40,30,.06)}
+.bx.wide{grid-column:span 2}
+.bx .ico{width:46px;height:46px;border-radius:13px;background:var(--mint2);display:flex;align-items:center;justify-content:center;color:var(--green);margin-bottom:18px}
+.bx h3{font-family:var(--fd);font-weight:600;font-size:20px;letter-spacing:-.02em;margin-bottom:8px}
+.bx p{font-size:15px;color:var(--ink2);line-height:1.55}
+.bx.dark{background:var(--ink);border-color:var(--ink)}
+.bx.dark h3{color:#fff}.bx.dark p{color:#aeb4ad}
+.bx.dark .ico{background:rgba(52,224,160,.16);color:var(--mint)}
+
+/* USE CASES */
+.cases{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.case{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;transition:.3s}
+.case:hover{transform:translateY(-5px);box-shadow:0 20px 54px rgba(20,40,30,.09)}
+.case.wide{grid-column:span 3}
+.case-top{height:190px;background:var(--tint);overflow:hidden}
+.case-top svg{width:100%;height:100%;display:block}
+.case-body{padding:28px 30px 32px}
+.case-body .k{font-size:12.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--green)}
+.case-body h3{font-family:var(--fd);font-weight:600;font-size:24px;letter-spacing:-.02em;margin:9px 0 9px}
+.case-body p{font-size:15px;color:var(--ink2);line-height:1.55}
+.case.wide .case-inner{display:grid;grid-template-columns:1fr 1fr;gap:0;align-items:stretch}
+.case.wide .case-top{height:100%;min-height:220px}
+.case.wide .case-body{padding:36px 38px;display:flex;flex-direction:column;justify-content:center}
+
+/* NUMBERS */
+.nums{background:var(--ink);border-radius:var(--r);padding:54px 40px;display:grid;grid-template-columns:repeat(4,1fr);gap:34px}
+.num{text-align:center}
+.num .v{font-family:var(--fd);font-weight:600;font-size:clamp(36px,4.6vw,56px);line-height:1;color:#fff;letter-spacing:-.03em}
+.num .v em{font-style:normal;color:var(--mint)}
+.num .l{font-size:14px;color:#9aa09a;margin-top:12px}
+
+/* ABOUT */
+.about .wrap{max-width:880px;text-align:center}
+.about h2{font-family:var(--fd);font-weight:600;font-size:clamp(30px,4.4vw,50px);line-height:1.1;letter-spacing:-.03em;margin:20px 0 0}
+.about h2 .g{color:var(--green)}
+.about p{font-size:17.5px;color:var(--ink2);margin:22px auto 0;max-width:560px;line-height:1.65}
+
+/* CONTACT */
+.contact .wrap{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+.contact-info h2{font-family:var(--fd);font-weight:600;font-size:clamp(32px,4.4vw,50px);line-height:1.04;letter-spacing:-.03em}
+.contact-info p{font-size:17px;color:var(--ink2);margin-top:18px;max-width:380px}
+.contact-meta{margin-top:30px;display:flex;flex-direction:column;gap:12px;font-size:16px;color:var(--ink2)}
+.contact-meta b{color:var(--ink);font-weight:600}
+form{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:34px}
+.field{margin-bottom:18px}
+.field label{font-size:14px;font-weight:600;color:var(--ink);display:block;margin-bottom:8px}
+.field input,.field textarea{width:100%;background:var(--bg);border:1.5px solid var(--line);border-radius:13px;padding:13px 15px;color:var(--ink);font-family:var(--fb);font-size:15px;transition:.2s;resize:vertical}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(15,122,85,.12)}
+form .btn-primary{width:100%;justify-content:center}
+
+/* FOOTER */
+footer{background:var(--bg2);border-top:1px solid var(--line);padding:62px 0 40px}
+.foot-top{display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap}
+.foot-brand{max-width:300px}
+.foot-brand .brand{margin-bottom:14px}
+.foot-brand p{color:var(--ink3);font-size:14.5px}
+.foot-cols{display:flex;gap:64px;flex-wrap:wrap}
+.foot-col h5{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink3);margin-bottom:15px}
+.foot-col a{display:block;color:var(--ink2);font-size:15px;margin-bottom:10px;transition:.2s}
+.foot-col a:hover{color:var(--green)}
+.foot-bottom{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:50px;padding-top:24px;border-top:1px solid var(--line);font-size:13.5px;color:var(--ink3)}
+
+/* anim */
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+.floaty{transform-box:fill-box;transform-origin:center;animation:float 5.5s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.45}50%{opacity:.9}}
+.breathe{animation:breathe 5s ease-in-out infinite}
+
+/* drone flies in from off-frame, drifts across sky while tracked (10s loop) */
+@keyframes drone-path{
+  0%{transform:translate(215px,-88px);opacity:0}
+  12%{transform:translate(215px,-88px);opacity:0}
+  15%{transform:translate(175px,-66px);opacity:1}
+  28%{transform:translate(95px,-30px);opacity:1}
+  40%{transform:translate(0,0);opacity:1}
+  56%{transform:translate(-26px,8px);opacity:1}
+  70%{transform:translate(-40px,-4px);opacity:1}
+  82%{transform:translate(-20px,6px);opacity:1}
+  90%{transform:translate(60px,-34px);opacity:1}
+  100%{transform:translate(215px,-88px);opacity:0}
+}
+.drone-anim{animation:drone-path 10s ease-in-out infinite}
+
+/* reticle locks onto drone after acquisition (~40%) and tracks it */
+@keyframes lock-in{
+  0%,38%{opacity:0;transform:scale(1.4)}
+  45%,82%{opacity:1;transform:scale(1)}
+  89%,100%{opacity:0;transform:scale(.9)}
+}
+.lock-anim{transform-box:fill-box;transform-origin:center;animation:lock-in 10s ease-in-out infinite}
+
+/* scan wedge sweeps during search, fades on lock; bearing line shows on lock */
+@keyframes scan-wedge-op{0%{opacity:.5}14%{opacity:.55}34%{opacity:.45}40%{opacity:0}88%{opacity:0}95%{opacity:.5}100%{opacity:.5}}
+.scan-wedge{animation:scan-wedge-op 10s ease-in-out infinite}
+@keyframes bearing-op{0%,40%{opacity:0}46%{opacity:.8}82%{opacity:.8}88%,100%{opacity:0}}
+.bearing-show{animation:bearing-op 10s ease-in-out infinite}
+
+/* signal rings pulse out from drone (Remote ID) */
+@keyframes rid-ring{
+  0%{transform:scale(.1);opacity:.8}
+  100%{transform:scale(3.5);opacity:0}
+}
+.rid1{transform-box:fill-box;transform-origin:center;animation:rid-ring 2.8s ease-out infinite;animation-delay:.5s}
+.rid2{transform-box:fill-box;transform-origin:center;animation:rid-ring 2.8s ease-out infinite;animation-delay:1.4s}
+.rid3{transform-box:fill-box;transform-origin:center;animation:rid-ring 2.8s ease-out infinite;animation-delay:2.2s}
+
+/* RF antenna blink */
+@keyframes rf-blink{0%,100%{opacity:.3}50%{opacity:1}}
+.rf-blink{animation:rf-blink 1.4s ease-in-out infinite}
+
+/* scanline across camera sensor */
+@keyframes scan{0%{transform:translateY(-22px)}100%{transform:translateY(22px)}}
+.scan-line{transform-box:fill-box;transform-origin:center;animation:scan 1.6s linear infinite alternate}
+
+/* labels pop after lock; RID card; slow sun rays */
+@keyframes label-pop{0%,40%{opacity:0;transform:translateY(7px)}47%,82%{opacity:1;transform:translateY(0)}89%,100%{opacity:0}}
+.label-pop{animation:label-pop 10s ease-in-out infinite}
+@keyframes ridcard{0%,42%{opacity:0;transform:translateY(9px)}49%,82%{opacity:1;transform:translateY(0)}89%,100%{opacity:0}}
+.ridcard{animation:ridcard 10s ease-in-out infinite}
+@keyframes sun-spin{to{transform:rotate(360deg)}}
+.sun-rays{transform-box:fill-box;transform-origin:center;animation:sun-spin 110s linear infinite}
+
+/* alert dot pulse */
+@keyframes alert{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:.7}}
+.alert-dot{transform-box:fill-box;transform-origin:center;animation:alert 1s ease-in-out infinite;animation-delay:.5s}
+
+/* propeller spin (squash horizontally to fake rotation) */
+@keyframes prop-spin{0%{transform:scaleX(1)}50%{transform:scaleX(.15)}100%{transform:scaleX(1)}}
+.prop{transform-box:fill-box;transform-origin:center;animation:prop-spin .28s linear infinite}
+/* tiny drone body bob */
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+.bob{transform-box:fill-box;transform-origin:center;animation:bob 2.2s ease-in-out infinite}
+/* slow cloud / bird drift */
+@keyframes drift-x{0%{transform:translateX(0)}50%{transform:translateX(14px)}100%{transform:translateX(0)}}
+.cloud{animation:drift-x 14s ease-in-out infinite}
+@keyframes bird-flap{0%,100%{transform:translateX(0) translateY(0)}50%{transform:translateX(-10px) translateY(-4px)}}
+.bird{transform-box:fill-box;transform-origin:center;animation:bird-flap 6s ease-in-out infinite}
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.stg>*{opacity:0;transform:translateY(20px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.stg.in>*{opacity:1;transform:none}
+.stg.in>*:nth-child(2){transition-delay:.07s}.stg.in>*:nth-child(3){transition-delay:.14s}.stg.in>*:nth-child(4){transition-delay:.21s}
+
+@media (max-width:920px){
+  .navlinks{display:none}
+  .hero-grid,.system .wrap,.contact .wrap{grid-template-columns:1fr;gap:34px}
+  .hero-vis{order:-1;max-width:460px}
+  .steps{grid-template-columns:1fr 1fr;gap:18px}
+  .bento{grid-template-columns:1fr 1fr}.bx.wide{grid-column:span 2}
+  .cases{grid-template-columns:1fr 1fr}
+  .case.wide{grid-column:span 2}
+  .case.wide .case-inner{grid-template-columns:1fr;display:flex;flex-direction:column}
+  .case.wide .case-top{min-height:190px!important;height:190px!important}
+  .nums{grid-template-columns:1fr 1fr;gap:38px;padding:44px 30px}
+}
+@media (max-width:520px){
+  .wrap{padding:0 20px} nav{padding:0 20px}
+  .steps,.bento,.nums{grid-template-columns:1fr}.bx.wide{grid-column:span 1}
+  .cases{grid-template-columns:1fr}.case.wide{grid-column:span 1}
+}
+@media (prefers-reduced-motion:reduce){
+  .reveal,.stg>*{opacity:1!important;transform:none!important;transition:none}
+  .floaty,.breathe{animation:none}html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<header id="hdr">
+  <nav>
+    <a class="brand" href="file:///C:/Users/phili/Downloads/index_5.html#top" aria-label="Nordsentry">
+      <svg width="26" height="26" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <g stroke="#0F7A55" stroke-width="3.4" stroke-linecap="round"><path d="M9 22V9h13"></path><path d="M42 9h13v13"></path><path d="M55 42v13h-13"></path><path d="M22 55H9v-13"></path><circle cx="32" cy="32" r="12" stroke-width="3"></circle></g>
+        <circle cx="32" cy="32" r="3.2" fill="#0F7A55"></circle><circle cx="45" cy="18" r="3.2" fill="#DA6A33"></circle>
+      </svg>
+      Nord<span>sentry</span>
+    </a>
+    <div class="navlinks">
+      <a href="file:///C:/Users/phili/Downloads/index_5.html#slik">Slik fungerer det</a>
+      <a href="file:///C:/Users/phili/Downloads/index_5.html#oversikt">Oversikt</a>
+      <a href="file:///C:/Users/phili/Downloads/index_5.html#bruk">Bruksområder</a>
+      <a href="file:///C:/Users/phili/Downloads/index_5.html#om">Om oss</a>
+    </div>
+    <a class="btn btn-primary" href="file:///C:/Users/phili/Downloads/index_5.html#kontakt">Be om demo</a>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div class="hero-copy reveal in">
+          <span class="tag">Prosjekt Luftvakt</span>
+          <h1>Vi oppdager dronen <span class="g">i god tid.</span></h1>
+          <p class="lead">Et bakkebasert system som holder øye med luftrommet over folk og områder — og gir beskjed lenge før noe nærmer seg. Raskt å rigge. Enkelt å forholde seg til.</p>
+          <div class="hero-cta">
+            <a class="btn btn-primary" href="file:///C:/Users/phili/Downloads/index_5.html#kontakt">Be om demo</a>
+            <a class="btn-text" href="file:///C:/Users/phili/Downloads/index_5.html#slik">Se hvordan det funker →</a>
+          </div>
+          <div class="hero-trust">
+            <span class="chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg> Oppe samme dag</span>
+            <span class="chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg> Ingen lufttillatelse</span>
+            <span class="chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg> Kostnadseffektivt</span>
+            <span class="chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg> Laget i Norge</span>
+          </div>
+        </div>
+        <div class="hero-vis reveal in">
+          <svg viewBox="0 0 520 420" aria-hidden="true" style="overflow:visible">
+            <defs>
+              <clippath id="vis-clip"><rect width="520" height="420" rx="0"></rect></clippath>
+              <filter id="glow-g"><fegaussianblur stdDeviation="3" result="blur"></fegaussianblur><femerge><femergenode in="blur"></femergenode><femergenode in="SourceGraphic"></femergenode></femerge></filter>
+              <radialgradient id="sun" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#FFF6E8" stop-opacity=".9"></stop><stop offset="100%" stop-color="#FFF6E8" stop-opacity="0"></stop></radialgradient>
+              <lineargradient id="skyg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E4F4EC"></stop><stop offset="100%" stop-color="#EFF7F1"></stop></lineargradient>
+              <lineargradient id="beamgrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#34E0A0" stop-opacity=".55"></stop><stop offset="100%" stop-color="#34E0A0" stop-opacity="0"></stop></lineargradient>
+            </defs>
+            <g clip-path="url(#vis-clip)">
+
+            <!-- SKY -->
+            <rect width="520" height="352" fill="url(#skyg)"></rect>
+            <rect y="352" width="520" height="68" fill="#FAFAF7"></rect>
+
+            <!-- SUN GLOW -->
+            <circle cx="78" cy="56" r="90" fill="url(#sun)"></circle>
+            <g class="sun-rays" stroke="#FFE3A8" stroke-width="2" stroke-linecap="round" opacity=".5">
+              <line x1="78" y1="28" x2="78" y2="20"></line><line x1="78" y1="84" x2="78" y2="92"></line>
+              <line x1="50" y1="56" x2="42" y2="56"></line><line x1="106" y1="56" x2="114" y2="56"></line>
+              <line x1="58" y1="36" x2="52" y2="30"></line><line x1="98" y1="76" x2="104" y2="82"></line>
+              <line x1="98" y1="36" x2="104" y2="30"></line><line x1="58" y1="76" x2="52" y2="82"></line>
+            </g>
+            <circle cx="78" cy="56" r="20" fill="#FFEFCF" opacity=".85"></circle>
+
+            <!-- CLOUDS -->
+            <g class="cloud" fill="#FFFFFF" opacity=".75">
+              <g transform="translate(360,52)"><ellipse cx="0" cy="0" rx="26" ry="13"></ellipse><ellipse cx="-20" cy="4" rx="16" ry="10"></ellipse><ellipse cx="20" cy="4" rx="18" ry="10"></ellipse></g>
+            </g>
+            <g class="cloud" fill="#FFFFFF" opacity=".6" style="animation-delay:3s">
+              <g transform="translate(190,92)"><ellipse cx="0" cy="0" rx="20" ry="9"></ellipse><ellipse cx="16" cy="3" rx="14" ry="8"></ellipse><ellipse cx="-14" cy="3" rx="12" ry="7"></ellipse></g>
+            </g>
+            <g class="cloud" fill="#FFFFFF" opacity=".5" style="animation-delay:6s">
+              <g transform="translate(470,118)"><ellipse cx="0" cy="0" rx="17" ry="8"></ellipse><ellipse cx="13" cy="3" rx="12" ry="7"></ellipse><ellipse cx="-12" cy="3" rx="10" ry="6"></ellipse></g>
+            </g>
+
+            <!-- DISTANT BIRDS (systemet skiller fugl fra drone) -->
+            <g class="bird" stroke="#8FA8B5" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".7">
+              <path d="M120 120 q6 -5 12 0 q6 -5 12 0"></path>
+              <path d="M150 134 q5 -4 10 0 q5 -4 10 0" opacity=".7"></path>
+            </g>
+            <g class="bird" stroke="#8FA8B5" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".55" style="animation-delay:2.5s">
+              <path d="M196 150 q5 -4 10 0 q5 -4 10 0"></path>
+              <path d="M225 140 q4 -3 8 0 q4 -3 8 0" opacity=".7"></path>
+            </g>
+
+            <!-- GROUND -->
+            <line x1="0" y1="352" x2="520" y2="352" stroke="#C7E0D3" stroke-width="2"></line>
+            <path d="M0 352 Q140 322 300 336 T520 330 V352 Z" fill="#DDF0E6" opacity=".7"></path>
+            <path d="M0 352 Q180 340 360 348 T520 346 V352 Z" fill="#CFE9DA" opacity=".6"></path>
+            <!-- distant forest line (depth) -->
+            <path d="M286 352 q7 -13 14 0 q7 -13 14 0 q7 -11 14 0 q7 -15 14 0 q7 -11 14 0 q7 -13 14 0 q7 -11 14 0 q7 -14 14 0 V352 Z" fill="#C3DDCF" opacity=".55"></path>
+            <!-- grass tufts -->
+            <g stroke="#8DC9AD" stroke-width="1.6" stroke-linecap="round">
+              <path d="M40 352 v-7 M44 352 v-9 M48 352 v-6"></path>
+              <path d="M470 352 v-7 M474 352 v-9 M478 352 v-6"></path>
+              <path d="M150 352 v-6 M154 352 v-8"></path>
+              <path d="M196 352 v-6 M200 352 v-8 M204 352 v-5"></path>
+            </g>
+            <!-- small flowers -->
+            <g><line x1="60" y1="352" x2="60" y2="343" stroke="#8DC9AD" stroke-width="1.4"></line><circle cx="60" cy="342" r="2.2" fill="#DA6A33"></circle></g>
+            <g><line x1="66" y1="352" x2="66" y2="345" stroke="#8DC9AD" stroke-width="1.4"></line><circle cx="66" cy="344" r="1.8" fill="#FFFFFF" stroke="#DA6A33" stroke-width=".6"></circle></g>
+            <!-- picket fence (right foreground) -->
+            <g stroke="#A9C7B6" stroke-width="2" stroke-linecap="round">
+              <line x1="382" y1="352" x2="382" y2="337"></line><line x1="400" y1="352" x2="400" y2="337"></line><line x1="418" y1="352" x2="418" y2="337"></line><line x1="436" y1="352" x2="436" y2="337"></line>
+              <line x1="376" y1="343" x2="442" y2="343"></line>
+            </g>
+
+            <!-- DISTANT TREES (left) -->
+            <g transform="translate(36,352)">
+              <line x1="0" y1="0" x2="0" y2="-22" stroke="#7A8F6E" stroke-width="3" stroke-linecap="round"></line>
+              <circle cx="0" cy="-28" r="13" fill="#A9D2A0"></circle><circle cx="-7" cy="-22" r="9" fill="#B6D9AE"></circle><circle cx="8" cy="-23" r="9" fill="#B6D9AE"></circle>
+            </g>
+            <!-- small shed (right) -->
+            <g transform="translate(452,352)">
+              <rect x="-22" y="-30" width="44" height="30" rx="2" fill="#D6E5DC"></rect>
+              <path d="M-26 -30 L0 -44 L26 -30 Z" fill="#BBD2C5"></path>
+              <rect x="-6" y="-18" width="12" height="18" fill="#A9C2B4"></rect>
+            </g>
+
+            <!-- DETECTION COVERAGE ARCS (breathe) -->
+            <g class="breathe" fill="none" stroke="#34E0A0" stroke-linecap="round">
+              <path d="M95 352 A175 175 0 0 1 395 352" stroke-width="2.2" opacity=".85"></path>
+              <path d="M128 352 A142 142 0 0 1 362 352" stroke-width="1.6" opacity=".6"></path>
+              <path d="M160 352 A110 110 0 0 1 330 352" stroke-width="1.2" opacity=".38"></path>
+            </g>
+
+            <!-- RF / REMOTE ID RECEIVER (Yagi antenna + box) -->
+            <g transform="translate(112,352)">
+              <ellipse cx="2" cy="2" rx="22" ry="5" fill="#1C2B24" opacity=".08"></ellipse>
+              <!-- receiver box -->
+              <rect x="-12" y="-22" width="24" height="22" rx="4" fill="#FFFFFF" stroke="#1C2B24" stroke-width="2"></rect>
+              <circle class="rf-blink" cx="-5" cy="-11" r="2.6" fill="#34E0A0"></circle>
+              <rect x="2" y="-15" width="7" height="3" rx="1.5" fill="#C7E0D3"></rect>
+              <rect x="2" y="-9" width="7" height="3" rx="1.5" fill="#C7E0D3"></rect>
+              <!-- mast -->
+              <line x1="0" y1="-22" x2="0" y2="-66" stroke="#3D5248" stroke-width="2.6" stroke-linecap="round"></line>
+              <!-- yagi elements pointing up toward drone -->
+              <g stroke="#3D5248" stroke-width="2.4" stroke-linecap="round">
+                <line x1="-13" y1="-66" x2="13" y2="-66"></line>
+                <line x1="-11" y1="-58" x2="11" y2="-58"></line>
+                <line x1="-9" y1="-50" x2="9" y2="-50"></line>
+              </g>
+              <circle class="rf-blink" cx="0" cy="-66" r="3" fill="#34E0A0" filter="url(#glow-g)" style="animation-delay:.6s"></circle>
+              <!-- label -->
+              <rect x="-22" y="6" width="44" height="15" rx="4" fill="#D8F4E8"></rect>
+              <text x="0" y="16.5" font-family="&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif" font-size="8.5" font-weight="600" fill="#0F7A55" text-anchor="middle">RF · RID</text>
+            </g>
+
+            <!-- GROUND CAMERA STATION (tracking PTZ) -->
+            <g transform="translate(250,352)">
+              <ellipse cx="0" cy="2" rx="30" ry="6" fill="#1C2B24" opacity=".08"></ellipse>
+              <!-- STATIC tripod -->
+              <g stroke="#3D5248" stroke-width="2.6" stroke-linecap="round" fill="none">
+                <line x1="0" y1="-50" x2="-20" y2="0"></line>
+                <line x1="0" y1="-50" x2="20" y2="0"></line>
+                <line x1="0" y1="-50" x2="2" y2="0"></line>
+                <path d="M-13 -28 L2 -24 L15 -28" stroke-width="1.6" opacity=".7"></path>
+              </g>
+              <line x1="-20" y1="0" x2="-26" y2="0" stroke="#3D5248" stroke-width="2.4" stroke-linecap="round"></line>
+              <line x1="20" y1="0" x2="26" y2="0" stroke="#3D5248" stroke-width="2.4" stroke-linecap="round"></line>
+              <path d="M-6 -60 Q-26 -40 -22 -2" fill="none" stroke="#9AD0BA" stroke-width="1.6" stroke-linecap="round" opacity=".8"></path>
+              <path d="M-3 -60 Q-19 -42 -17 -2" fill="none" stroke="#C9BCA0" stroke-width="1.2" stroke-linecap="round" opacity=".7"></path>
+              <rect x="-37" y="-17" width="19" height="17" rx="3" fill="#FFFFFF" stroke="#1C2B24" stroke-width="1.8"></rect>
+              <circle class="alert-dot" cx="-27" cy="-9" r="2.2" fill="#34E0A0"></circle>
+              <rect x="-23" y="-13" width="3" height="2.6" rx="1" fill="#C7E0D3"></rect><rect x="-23" y="-7.5" width="3" height="2.6" rx="1" fill="#C7E0D3"></rect>
+              <rect x="-8" y="-60" width="16" height="10" rx="3" fill="#2C3E35"></rect>
+              <circle cx="0" cy="-55" r="1.8" fill="#5A6E62"></circle>
+
+              <!-- BEAM: scan wedge + bearing line; sweeps to search, then tracks drone -->
+              <g>
+                <path class="scan-wedge" d="M26 -64.5 L176 -73 L176 -56 Z" fill="url(#beamgrad)"></path>
+                <line class="bearing-show" x1="32" y1="-64.5" x2="170" y2="-64.5" stroke="#DA6A33" stroke-width="1.8" stroke-dasharray="7 5" stroke-linecap="round"></line>
+                <animatetransform attributeName="transform" type="rotate" values="-44 26 -64.5;-88 26 -64.5;-56 26 -64.5;-47 26 -64.5;-65 26 -64.5;-74 26 -64.5;-80 26 -64.5;-72 26 -64.5;-54 26 -64.5;-44 26 -64.5" keyTimes="0;0.07;0.14;0.28;0.40;0.56;0.70;0.82;0.90;1" dur="10s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1"></animatetransform>
+              </g>
+
+              <!-- ROTATING camera head (pans/tilts to track) -->
+              <g class="cam-head">
+                <rect x="-24" y="-82" width="44" height="22" rx="9" fill="#FFFFFF" stroke="#1C2B24" stroke-width="2.4"></rect>
+                <path d="M-26 -82 h32 a4 4 0 0 1 4 4 v1 h-40 v-1 a4 4 0 0 1 4 -4 Z" fill="#E8F3ED" stroke="#1C2B24" stroke-width="1.6"></path>
+                <line x1="-24" y1="-74" x2="-33" y2="-74" stroke="#3D5248" stroke-width="1.6" stroke-linecap="round"></line>
+                <line x1="-33" y1="-74" x2="-33" y2="-83" stroke="#3D5248" stroke-width="1.6"></line>
+                <g stroke="#3D5248" stroke-width="1.3"><line x1="-33" y1="-83" x2="-37" y2="-86"></line><line x1="-33" y1="-83" x2="-29" y2="-86"></line><line x1="-33" y1="-83" x2="-33" y2="-88"></line></g>
+                <circle cx="-38" cy="-86" r="1.4" fill="#34E0A0"></circle><circle cx="-28" cy="-86" r="1.4" fill="#34E0A0"></circle><circle cx="-33" cy="-89" r="1.4" fill="#34E0A0"></circle>
+                <rect x="17" y="-80" width="13" height="9" rx="2.5" fill="#3D5248"></rect>
+                <circle cx="25" cy="-75.5" r="3" fill="#0F7A55"></circle><circle cx="25" cy="-75.5" r="1.6" fill="#34E0A0"></circle>
+                <rect x="17" y="-70" width="16" height="11" rx="3" fill="#3D5248"></rect>
+                <circle cx="26" cy="-64.5" r="4.6" fill="#0F7A55"></circle><circle cx="26" cy="-64.5" r="2.6" fill="#34E0A0"></circle>
+                <line class="scan-line" x1="22" y1="-64.5" x2="30" y2="-64.5" stroke="#EFFFF8" stroke-width="1.6" opacity=".9"></line>
+                <circle cx="26" cy="-64.5" r="6.2" fill="none" stroke="#1C2B24" stroke-width="1"></circle>
+                <circle cx="-18" cy="-78" r="1.3" fill="#9FB2A8"></circle><circle cx="-18" cy="-64" r="1.3" fill="#9FB2A8"></circle>
+                <circle class="alert-dot" cx="-11" cy="-71" r="2.4" fill="#34E0A0" filter="url(#glow-g)"></circle>
+                <animatetransform attributeName="transform" type="rotate" values="-4 0 -62;5 0 -62;0 0 -62;5 0 -62;1 0 -62;-3 0 -62;-5 0 -62;-2 0 -62;4 0 -62;-4 0 -62" keyTimes="0;0.07;0.14;0.28;0.40;0.56;0.70;0.82;0.90;1" dur="10s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1;0.4 0 0.2 1"></animatetransform>
+              </g>
+
+              <!-- STATIC label -->
+              <rect x="-36" y="-104" width="72" height="15" rx="4" fill="#1C2B24"></rect>
+              <text x="0" y="-93.5" font-family="&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif" font-size="8.5" font-weight="600" fill="#34E0A0" text-anchor="middle">LUFTVAKT · AKTIV</text>
+            </g>
+
+            <!-- (bearing line + distance now live in the tracking beam and RID card) -->
+
+            <!-- DRONE (positioned by outer g, animated by inner g) -->
+            <g transform="translate(334,155)"><g class="drone-anim">
+              <ellipse cx="0" cy="40" rx="22" ry="4" fill="#1C2B24" opacity=".06"></ellipse>
+              <g class="bob">
+                <!-- prop-blur discs -->
+                <g fill="#0F7A55" opacity=".12">
+                  <ellipse cx="-26" cy="-15" rx="15" ry="4"></ellipse><ellipse cx="26" cy="-15" rx="15" ry="4"></ellipse>
+                  <ellipse cx="-26" cy="15" rx="15" ry="4"></ellipse><ellipse cx="26" cy="15" rx="15" ry="4"></ellipse>
+                </g>
+                <!-- arms -->
+                <g stroke="#2C3E35" stroke-width="3.4" stroke-linecap="round">
+                  <line x1="0" y1="0" x2="-26" y2="-15"></line><line x1="0" y1="0" x2="26" y2="-15"></line>
+                  <line x1="0" y1="0" x2="-26" y2="15"></line><line x1="0" y1="0" x2="26" y2="15"></line>
+                </g>
+                <!-- motor housings -->
+                <g fill="#1C2B24">
+                  <rect x="-31" y="-20" width="10" height="10" rx="2.5"></rect><rect x="21" y="-20" width="10" height="10" rx="2.5"></rect>
+                  <rect x="-31" y="10" width="10" height="10" rx="2.5"></rect><rect x="21" y="10" width="10" height="10" rx="2.5"></rect>
+                </g>
+                <!-- navigation LEDs: red left, green right -->
+                <circle cx="-26" cy="-21.5" r="1.7" fill="#E5484D"></circle><circle cx="-26" cy="21.5" r="1.7" fill="#E5484D"></circle>
+                <circle cx="26" cy="-21.5" r="1.7" fill="#2FD38C"></circle><circle cx="26" cy="21.5" r="1.7" fill="#2FD38C"></circle>
+                <!-- spinning propellers -->
+                <g stroke="#0F7A55" stroke-width="2.4" stroke-linecap="round" opacity=".9">
+                  <line class="prop" x1="-36" y1="-15" x2="-16" y2="-15"></line>
+                  <line class="prop" x1="16" y1="-15" x2="36" y2="-15" style="animation-delay:.07s"></line>
+                  <line class="prop" x1="-36" y1="15" x2="-16" y2="15" style="animation-delay:.14s"></line>
+                  <line class="prop" x1="16" y1="15" x2="36" y2="15" style="animation-delay:.05s"></line>
+                </g>
+                <g fill="#34E0A0"><circle cx="-26" cy="-15" r="2"></circle><circle cx="26" cy="-15" r="2"></circle><circle cx="-26" cy="15" r="2"></circle><circle cx="26" cy="15" r="2"></circle></g>
+                <!-- landing skids -->
+                <g stroke="#2C3E35" stroke-width="2" stroke-linecap="round">
+                  <line x1="-12" y1="10" x2="-15" y2="21"></line><line x1="12" y1="10" x2="15" y2="21"></line>
+                  <line x1="-20" y1="21" x2="-9" y2="21"></line><line x1="9" y1="21" x2="20" y2="21"></line>
+                </g>
+                <!-- body -->
+                <rect x="-16" y="-11" width="32" height="22" rx="7" fill="#FFFFFF" stroke="#1C2B24" stroke-width="2.4"></rect>
+                <rect x="-11" y="-7" width="22" height="5" rx="2.5" fill="#E8F3ED"></rect>
+                <!-- antennas -->
+                <line x1="-7" y1="-11" x2="-10" y2="-21" stroke="#1C2B24" stroke-width="1.4" stroke-linecap="round"></line>
+                <line x1="0" y1="-11" x2="0" y2="-18" stroke="#1C2B24" stroke-width="2" stroke-linecap="round"></line>
+                <circle cx="0" cy="-19" r="2" fill="#DA6A33"></circle>
+                <!-- gimbal camera pod -->
+                <path d="M-8 11 h16 v4 a8 8 0 0 1 -16 0 Z" fill="#1C2B24"></path>
+                <circle cx="0" cy="15" r="4" fill="#34E0A0"></circle><circle cx="0" cy="15" r="2" fill="#0F7A55"></circle>
+                <circle cx="0" cy="15" r="4" fill="none" stroke="#1C2B24" stroke-width="1"></circle>
+                <!-- side status lights -->
+                <circle class="rf-blink" cx="-13" cy="-1" r="1.7" fill="#DA6A33"></circle>
+                <circle class="rf-blink" cx="13" cy="-1" r="1.7" fill="#34E0A0" style="animation-delay:.5s"></circle>
+              </g>
+              <circle class="rid1" cx="0" cy="0" r="22" fill="none" stroke="#DA6A33" stroke-width="1.5" opacity=".7"></circle>
+              <circle class="rid2" cx="0" cy="0" r="22" fill="none" stroke="#DA6A33" stroke-width="1.5" opacity=".7"></circle>
+              <circle class="rid3" cx="0" cy="0" r="22" fill="none" stroke="#DA6A33" stroke-width="1.5" opacity=".7"></circle>
+              <!-- reticle (child → tracks drone) -->
+              <g class="lock-anim">
+                <g stroke="#DA6A33" stroke-width="2" fill="none" stroke-linecap="round">
+                  <path d="M-34 -38 V-46 H-26"></path><path d="M26 -46 H34 V-38"></path>
+                  <path d="M34 38 V46 H26"></path><path d="M-26 46 H-34 V38"></path>
+                </g>
+                <circle cx="0" cy="0" r="26" fill="none" stroke="#DA6A33" stroke-width="1.2" opacity=".5"></circle>
+              </g>
+              <!-- detection label (child → tracks drone) -->
+              <g transform="translate(0,-58)"><g class="label-pop">
+                <rect x="-58" y="-14" width="116" height="24" rx="7" fill="#1C2B24"></rect>
+                <text x="0" y="3" font-family="&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif" font-size="10.5" font-weight="600" fill="#34E0A0" text-anchor="middle">● DRONE OPPDAGET</text>
+              </g></g>
+            </g></g>
+
+            <!-- REMOTE ID INFO CARD (fixed) -->
+            <g transform="translate(392,150)"><g class="ridcard">
+              <rect x="0" y="0" width="106" height="90" rx="9" fill="#FFFFFF" stroke="#E0EDE6" stroke-width="1.5"></rect>
+              <rect x="0" y="0" width="106" height="20" rx="9" fill="#FDEDE2"></rect>
+              <rect x="0" y="11" width="106" height="9" fill="#FDEDE2"></rect>
+              <circle cx="11" cy="10" r="3" fill="#DA6A33"></circle>
+              <text x="20" y="13.5" font-family="&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif" font-size="8.5" font-weight="700" fill="#DA6A33">REMOTE ID</text>
+              <text x="9" y="33" font-family="&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif" font-size="8" fill="#8A918B">ID</text>
+              <text x="97" y="33" font-family="&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif" font-size="8" font-weight="600" fill="#1C201D" text-anchor="end">NO-DJI-4821</text>
+              <text x="9" y="46" font-family="&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif" font-size="8" fill="#8A918B">Høyde</text>
+              <text x="97" y="46" font-family="&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif" font-size="8" font-weight="600" fill="#1C201D" text-anchor="end">78 m</text>
+              <text x="9" y="59" font-family="&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif" font-size="8" fill="#8A918B">Fart</text>
+              <text x="97" y="59" font-family="&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif" font-size="8" font-weight="600" fill="#1C201D" text-anchor="end">6 m/s</text>
+              <text x="9" y="72" font-family="&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif" font-size="8" fill="#8A918B">Avstand</text>
+              <text x="97" y="72" font-family="&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif" font-size="8" font-weight="600" fill="#1C201D" text-anchor="end">≈ 980 m</text>
+              <rect x="9" y="78" width="88" height="9" rx="4.5" fill="#FDEDE2"></rect>
+              <text x="53" y="85" font-family="&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif" font-size="7.5" font-weight="700" fill="#DA6A33" text-anchor="middle">UAUTORISERT</text>
+            </g></g>
+
+            <!-- FLIGHT PATH TRAIL -->
+            <path d="M520 96 Q460 120 410 142 Q372 158 334 158" fill="none" stroke="#9AD0BA" stroke-width="1.4" stroke-dasharray="4 6" opacity=".4"></path>
+
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEPS -->
+  <section class="band" id="slik">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="tag">Slik fungerer det</span>
+        <h2>Fire enkle ledd, fra bredt blikk til klar beskjed.</h2>
+      </div>
+      <div class="steps stg reveal">
+        <div class="step"><div class="top"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4-4"></path></svg></div><div class="n">01</div></div><h3>Søk</h3><p>Brede kameraer holder hele området under oppsikt, hele tiden.</p></div>
+        <div class="step"><div class="top"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg></div><div class="n">02</div></div><h3>Oppdag</h3><p>Programvaren kjenner igjen droner og skiller dem fra fugler og skyer.</p></div>
+        <div class="step"><div class="top"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path><circle cx="12" cy="12" r="2.5"></circle></svg></div><div class="n">03</div></div><h3>Følg</h3><p>Et zoomkamera retter seg mot målet og holder det i sikte langt unna.</p></div>
+        <div class="step"><div class="top"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.7 21a2 2 0 01-3.4 0"></path></svg></div><div class="n">04</div></div><h3>Varsle</h3><p>Du får beskjed med en gang — med retning, avstand og levende bilde.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SYSTEM -->
+  <section class="band tintbg system" id="oversikt">
+    <div class="wrap">
+      <div class="system-copy reveal">
+        <span class="tag">Full oversikt</span>
+        <h2>Flere øyne som peker mot samme punkt.</h2>
+        <p>Når flere kamerastasjoner ser dronen samtidig, kan systemet regne ut nøyaktig hvor den er — ikke bare at den er der, men hvor. Det gjør det enkelt å si akkurat hvilket område som er berørt.</p>
+        <div class="pts">
+          <div class="pt"><span class="c"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span> Nøyaktig posisjon, ikke bare en retning</div>
+          <div class="pt"><span class="c"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span> Oppdateres i sanntid mens dronen beveger seg</div>
+          <div class="pt"><span class="c"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span> Flere stasjoner dekker et stort område sammen</div>
+        </div>
+      </div>
+      <div class="system-vis reveal">
+        <svg viewBox="0 0 560 380" aria-hidden="true">
+          <rect width="560" height="380" rx="14" fill="#FAFAF7"></rect>
+          <g opacity=".7" fill="#EDEAE2">
+            <rect x="40" y="40" width="120" height="70" rx="10"></rect><rect x="180" y="40" width="150" height="70" rx="10"></rect>
+            <rect x="40" y="270" width="130" height="70" rx="10"></rect><rect x="200" y="270" width="150" height="70" rx="10"></rect>
+            <rect x="430" y="110" width="90" height="70" rx="10"></rect><rect x="430" y="210" width="90" height="70" rx="10"></rect>
+          </g>
+          <g stroke="#0F7A55" stroke-width="1.6" stroke-dasharray="3 6" stroke-linecap="round" opacity=".5">
+            <line x1="120" y1="160" x2="320" y2="185"></line><line x1="450" y1="70" x2="320" y2="185"></line><line x1="250" y1="330" x2="320" y2="185"></line>
+          </g>
+          <circle class="breathe" cx="320" cy="185" r="30" fill="none" stroke="#34E0A0" stroke-width="2.4" stroke-dasharray="3 4"></circle>
+          <circle cx="320" cy="185" r="9" fill="#DA6A33"></circle><circle cx="320" cy="185" r="9" fill="none" stroke="#FAFAF7" stroke-width="2"></circle>
+          <g fill="#0F7A55"><circle cx="120" cy="160" r="15"></circle><circle cx="450" cy="70" r="15"></circle><circle cx="250" cy="330" r="15"></circle></g>
+          <g fill="#FFFFFF"><circle cx="120" cy="160" r="5"></circle><circle cx="450" cy="70" r="5"></circle><circle cx="250" cy="330" r="5"></circle></g>
+          <text x="356" y="182" font-family="&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif" font-size="13" font-weight="600" fill="#15181B">Drone funnet</text>
+          <text x="356" y="200" font-family="&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif" font-size="12" fill="#9aa09a">Posisjon bekreftet</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- BENTO why -->
+  <section class="band">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="tag">Hvorfor Nordsentry</span>
+        <h2>Avansert deteksjon, uten bryderiet.</h2>
+      </div>
+      <div class="bento stg reveal">
+        <div class="bx wide dark">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9z"></path></svg></div>
+          <h3>Oppe samme dag</h3>
+          <p>Stativ, kamera, kjør. Systemet er klart i drift på timer, ikke uker — og tas like raskt ned igjen.</p>
+        </div>
+        <div class="bx">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 0v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4"></path><circle cx="12" cy="12" r="3"></circle></svg></div>
+          <h3>Kostnadseffektivt</h3>
+          <p>Rimelig å sette opp og drifte sammenlignet med tradisjonelle sikkerhetssystemer — uten at det går på bekostning av ytelsen.</p>
+        </div>
+        <div class="bx">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"></path><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"></path></svg></div>
+          <h3>Ingen tillatelser</h3>
+          <p>Bare kameraer og programvare — ingen drone i lufta, ingen luftfartsbyråkrati.</p>
+        </div>
+        <div class="bx">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></div>
+          <h3>Sanntid</h3>
+          <p>Du får beskjed i samme øyeblikk noe blir oppdaget — ikke i ettertid.</p>
+        </div>
+        <div class="bx">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h18M3 17h18"></path></svg></div>
+          <h3>Levert som tjeneste</h3>
+          <p>Vi setter opp, drifter og rapporterer. Du slipper å tenke på teknologien.</p>
+        </div>
+        <div class="bx">
+          <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 00-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 00-7-7z"></path><circle cx="12" cy="9" r="2.5"></circle></svg></div>
+          <h3>Laget for Norge</h3>
+          <p>Værbestandig utstyr for kulde, regn og snø — året rundt, i norske forhold.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- USE CASES -->
+  <section class="band whitebg" id="bruk">
+    <div class="wrap">
+      <div class="sec-head center reveal">
+        <span class="tag">Bruksområder</span>
+        <h2>Der det er fint å vite hva som er i lufta.</h2>
+      </div>
+      <div class="cases stg reveal">
+
+        <div class="case">
+          <div class="case-top">
+            <svg viewBox="0 0 440 190" preserveAspectRatio="xMidYMid slice">
+              <rect width="440" height="190" fill="#EBF6F0"></rect>
+              <path d="M130 132 Q220 88 310 132" fill="none" stroke="#9AD0BA" stroke-width="3"></path>
+              <rect x="160" y="132" width="120" height="6" rx="3" fill="#9AD0BA"></rect>
+              <g fill="#7CC0A4"><circle cx="150" cy="152" r="5"></circle><circle cx="172" cy="156" r="5"></circle><circle cx="194" cy="152" r="5"></circle><circle cx="216" cy="157" r="5"></circle><circle cx="238" cy="153" r="5"></circle><circle cx="260" cy="157" r="5"></circle><circle cx="282" cy="152" r="5"></circle><circle cx="304" cy="156" r="5"></circle></g>
+              <g class="floaty"><g stroke="#15181B" stroke-width="2" stroke-linecap="round"><line x1="338" y1="50" x2="366" y2="68"></line><line x1="366" y1="50" x2="338" y2="68"></line></g><rect x="345" y="54" width="14" height="9" rx="3" fill="#0F7A55"></rect></g>
+              <path d="M352 132 Q344 100 352 70" fill="none" stroke="#0F7A55" stroke-width="1.4" stroke-dasharray="2 6" opacity=".5"></path>
+            </svg>
+          </div>
+          <div class="case-body"><div class="k">Folkemengder</div><h3>Festivaler &amp; arrangementer</h3><p>Hold luftrommet over publikum trygt. Vi rigger opp før dørene åpner, og drifter hele veien.</p></div>
+        </div>
+
+        <div class="case">
+          <div class="case-top">
+            <svg viewBox="0 0 440 190" preserveAspectRatio="xMidYMid slice">
+              <rect width="440" height="190" fill="#EBF6F0"></rect>
+              <rect x="70" y="98" width="70" height="80" rx="5" fill="#C7E0D3"></rect>
+              <rect x="150" y="72" width="60" height="106" rx="5" fill="#C7E0D3"></rect>
+              <g stroke="#9AD0BA" stroke-width="3" fill="none"><line x1="300" y1="52" x2="300" y2="178"></line><line x1="300" y1="52" x2="370" y2="52"></line><line x1="362" y1="52" x2="362" y2="74"></line></g>
+              <g class="floaty"><g stroke="#15181B" stroke-width="2" stroke-linecap="round"><line x1="338" y1="98" x2="366" y2="116"></line><line x1="366" y1="98" x2="338" y2="116"></line></g><rect x="345" y="102" width="14" height="9" rx="3" fill="#0F7A55"></rect></g>
+            </svg>
+          </div>
+          <div class="case-body"><div class="k">Perimeter</div><h3>Byggeplasser</h3><p>Oppdag droner — og samtidig folk over gjerder og kjøretøy utenom arbeidstid. Sikkerhet i ett.</p></div>
+        </div>
+
+        <div class="case">
+          <div class="case-top">
+            <svg viewBox="0 0 440 190" preserveAspectRatio="xMidYMid slice">
+              <rect width="440" height="190" fill="#EBF6F0"></rect>
+              <path d="M0 142 Q110 122 220 140 T440 136 V190 H0 Z" fill="#BFDDCE"></path>
+              <g stroke="#9AD0BA" stroke-width="3" fill="none"><path d="M80 142 L80 98 L124 98 L124 142"></path><path d="M80 98 L102 80 L124 98"></path></g>
+              <g class="floaty"><g stroke="#15181B" stroke-width="2" stroke-linecap="round"><line x1="330" y1="56" x2="358" y2="74"></line><line x1="358" y1="56" x2="330" y2="74"></line></g><rect x="337" y="60" width="14" height="9" rx="3" fill="#0F7A55"></rect></g>
+            </svg>
+          </div>
+          <div class="case-body"><div class="k">Kystnært</div><h3>Marinaer &amp; havner</h3><p>Hold oversikt over kaiområder, båter og ankomster fra land — rolig og diskret.</p></div>
+        </div>
+
+        <!-- KRITISK INFRASTRUKTUR — bredt kort -->
+        <div class="case wide">
+          <div class="case-inner">
+            <div class="case-top" style="height:100%;min-height:230px">
+              <svg viewBox="0 0 660 230" preserveAspectRatio="xMidYMid slice">
+                <rect width="660" height="230" fill="#EBF6F0"></rect>
+                <!-- kraftledninger -->
+                <g stroke="#9AD0BA" stroke-width="3" stroke-linecap="round" fill="none">
+                  <line x1="60" y1="60" x2="60" y2="180"></line><line x1="60" y1="80" x2="200" y2="100"></line><line x1="60" y1="100" x2="200" y2="120"></line>
+                  <line x1="200" y1="60" x2="200" y2="180"></line><line x1="200" y1="80" x2="340" y2="100"></line><line x1="200" y1="100" x2="340" y2="120"></line>
+                  <line x1="340" y1="60" x2="340" y2="180"></line>
+                  <path d="M52 58 h16 M52 182 h16 M192 58 h16 M192 182 h16 M332 58 h16 M332 182 h16"></path>
+                </g>
+                <!-- transformator -->
+                <rect x="390" y="90" width="70" height="80" rx="8" fill="#C7E0D3"></rect>
+                <rect x="410" y="108" width="30" height="44" rx="4" fill="#9AD0BA"></rect>
+                <line x1="425" y1="90" x2="425" y2="60" stroke="#9AD0BA" stroke-width="2.5" stroke-linecap="round"></line>
+                <line x1="425" y1="170" x2="425" y2="200" stroke="#9AD0BA" stroke-width="2.5" stroke-linecap="round"></line>
+                <!-- vindturbin -->
+                <line x1="560" y1="60" x2="560" y2="190" stroke="#C7E0D3" stroke-width="4" stroke-linecap="round"></line>
+                <g stroke="#9AD0BA" stroke-width="3" stroke-linecap="round" fill="none">
+                  <line x1="560" y1="60" x2="545" y2="30"></line><line x1="560" y1="60" x2="580" y2="34"></line><line x1="560" y1="60" x2="548" y2="88"></line>
+                </g>
+                <circle cx="560" cy="60" r="5" fill="#0F7A55"></circle>
+                <!-- drone -->
+                <g class="floaty"><g stroke="#15181B" stroke-width="2" stroke-linecap="round"><line x1="590" y1="110" x2="618" y2="128"></line><line x1="618" y1="110" x2="590" y2="128"></line></g><rect x="597" y="114" width="14" height="9" rx="3" fill="#0F7A55"></rect></g>
+              </svg>
+            </div>
+            <div class="case-body">
+              <div class="k">Kritisk infrastruktur</div>
+              <h3>Kraftverk, olje­terminaler &amp; forsyningsbaser</h3>
+              <p>Strømanlegg, transformatorstasjoner, LNG-terminaler og forsyningsbaser er sårbare punkter som ikke har luftovervåkning i dag. Nordsentry legger til luftdomenet i sikkerhetssystemet de allerede har — uten å erstatte noe.</p>
+              <p style="margin-top:12px;font-size:14px;color:var(--ink3)">Aktuelle kunder: Statnett, Statkraft, Elvia, Equinor landanlegg, Gassco</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- NUMBERS -->
+  <section class="band">
+    <div class="wrap reveal">
+      <div class="nums stg">
+        <div class="num"><div class="v" style="font-size:clamp(22px,2.8vw,34px);line-height:1.2">Presisjon<em>s</em>kameraer</div><div class="l">Nøyaktig optikk som ser langt og skarpt</div></div>
+        <div class="num"><div class="v">~2<em> km</em></div><div class="l">Deteksjonsrekkevidde</div></div>
+        <div class="num"><div class="v" style="font-size:clamp(22px,2.8vw,34px);line-height:1.2">Lav<em> kostnad</em></div><div class="l">Rimelig å sette opp og drifte</div></div>
+        <div class="num"><div class="v">24/<em>7</em></div><div class="l">Kontinuerlig oppsikt</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="band tintbg about" id="om">
+    <div class="wrap reveal">
+      <span class="tag" style="margin:0 auto">Om oss</span>
+      <h2>Vi lager systemer som <span class="g">beskytter folk og områder</span> mot droner — på en enkel måte.</h2>
+      <p>Nordsentry kombinerer rimelig utstyr med smart programvare, utviklet i Norge for nordiske forhold. Vi starter med å oppdage, fordi det er der behovet er størst og terskelen lavest.</p>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="band contact" id="kontakt">
+    <div class="wrap">
+      <div class="contact-info reveal">
+        <span class="tag">Kontakt</span>
+        <h2>Vil du se det i praksis?</h2>
+        <p>Vi setter opp Luftvakt på ditt neste arrangement eller din plass — og viser deg at det funker, før du forplikter deg til noe.</p>
+        <div class="contact-meta">
+          <span><b>E-post</b>&nbsp;&nbsp;kontakt@nordsentry.no</span>
+          <span><b>Sted</b>&nbsp;&nbsp;Oslo, Norge</span>
+          <span><b>Svar</b>&nbsp;&nbsp;innen 1–2 virkedager</span>
+        </div>
+      </div>
+      <form class="reveal" id="demoform">
+        <div class="field"><label for="navn">Navn</label><input type="text" id="navn" name="navn" placeholder="Ditt navn" required=""></div>
+        <div class="field"><label for="org">Organisasjon eller arrangement</label><input type="text" id="org" name="org" placeholder="Festival, byggefirma, e.l." required=""></div>
+        <div class="field"><label for="epost">E-post</label><input type="email" id="epost" name="epost" placeholder="deg@firma.no" required=""></div>
+        <div class="field"><label for="melding">Hva trenger du dekning for?</label><textarea id="melding" name="melding" rows="3" placeholder="Kort om sted, dato og omfang"></textarea></div>
+        <button type="submit" class="btn btn-primary">Send forespørsel</button>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <a class="brand" href="file:///C:/Users/phili/Downloads/index_5.html#top">
+          <svg width="24" height="24" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <g stroke="#0F7A55" stroke-width="3.4" stroke-linecap="round"><path d="M9 22V9h13"></path><path d="M42 9h13v13"></path><path d="M55 42v13h-13"></path><path d="M22 55H9v-13"></path><circle cx="32" cy="32" r="12" stroke-width="3"></circle></g>
+            <circle cx="32" cy="32" r="3.2" fill="#0F7A55"></circle><circle cx="45" cy="18" r="3.2" fill="#DA6A33"></circle>
+          </svg>
+          Nord<span>sentry</span>
+        </a>
+        <p>Vi vokter det som flyr. Bakkebasert dronedeteksjon, laget i Norge.</p>
+      </div>
+      <div class="foot-cols">
+        <div class="foot-col"><h5>Produkt</h5><a href="file:///C:/Users/phili/Downloads/index_5.html#slik">Slik fungerer det</a><a href="file:///C:/Users/phili/Downloads/index_5.html#oversikt">Oversikt</a><a href="file:///C:/Users/phili/Downloads/index_5.html#bruk">Bruksområder</a></div>
+        <div class="foot-col"><h5>Selskap</h5><a href="file:///C:/Users/phili/Downloads/index_5.html#om">Om oss</a><a href="file:///C:/Users/phili/Downloads/index_5.html#kontakt">Kontakt</a><a href="file:///C:/Users/phili/Downloads/index_5.html#kontakt">Be om demo</a></div>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Nordsentry</span>
+      <span>Oslo, Norge</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+const hdr=document.getElementById('hdr');
+const onScroll=()=>hdr.classList.toggle('scrolled',window.scrollY>30);
+onScroll();window.addEventListener('scroll',onScroll,{passive:true});
+const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal,.stg').forEach(el=>io.observe(el));
+document.getElementById('demoform').addEventListener('submit',function(ev){
+  ev.preventDefault();
+  const b=`Navn: ${this.navn.value}\nOrganisasjon: ${this.org.value}\nE-post: ${this.epost.value}\n\n${this.melding.value}`;
+  window.location.href='mailto:kontakt@nordsentry.no?subject='+encodeURIComponent('Demo-forespørsel — Luftvakt')+'&body='+encodeURIComponent(b);
+});
+</script>
+
+
+</body></html>
